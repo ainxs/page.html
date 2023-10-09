@@ -1,0 +1,157 @@
+const char MAIN_page[] PROGMEM = R"=====(
+<!DOCTYPE html>
+<html>
+<head>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+    }
+
+    h1 {
+      color: #333;
+    }
+
+    h2 {
+      color: #666;
+    }
+
+    form {
+      margin-top: 20px;
+    }
+
+    label {
+      display: inline-block;
+      width: 80px;
+      text-align: right;
+      margin-right: 10px;
+      font-weight: bold;
+      color: #333;
+    }
+
+    input[type="time"] {
+      padding: 5px;
+      margin-right: 10px;
+      border: 1px solid #999;
+      border-radius: 5px;
+    }
+
+    input[type="text"] {
+      padding: 5px;
+      margin-right: 10px;
+      border: 1px solid #999;
+      border-radius: 5px;
+    }
+
+    input[type="submit"] {
+      padding: 5px 10px;
+      background-color: #007BFF;
+      color: #fff;
+      border: none;
+      border-radius: 5px;
+      cursor: pointer;
+    }
+
+    input[type="submit"]:hover {
+      background-color: #0056b3;
+    }
+
+  </style>
+</head>
+<body>
+  <h1>Selamat Datang di JWS Kota Bandung!</h1>
+  <h2><span id="currentDay"></span> <span id="currentTime"></span> <span id="currentDate"></span></h2>
+
+  <form action="/settime" method="post">
+    <input type="time" id="time" name="time" required>
+    <input type="submit" value="Atur Jam">
+  </form>
+
+<h2>Set Iqomah Time:</h2>
+<ul>
+  <li>
+    Subuh: <span id="subuhTime"></span>
+    <input type="number" id="subuhMinutes" min="-10" max="10" step="1">
+    Menit
+    <button onclick="setIqomahTime('subuh')">Set</button>
+  </li>
+  <li>
+    Dzuhur: <span id="dzuhurTime"></span>
+    <input type="number" id="dzuhurMinutes" min="-10" max="10" step="1">
+    Menit
+    <button onclick="setIqomahTime('dzuhur')">Set</button>
+  </li>
+  <li>
+    Ashar: <span id="asharTime"></span>
+    <input type="number" id="asharMinutes" min="-10" max="10" step="1">
+    Menit
+    <button onclick="setIqomahTime('ashar')">Set</button>
+  </li>
+  <li>
+    Maghrib: <span id="maghribTime"></span>
+    <input type="number" id="maghribMinutes" min="-10" max="10" step="1">
+    Menit
+    <button onclick="setIqomahTime('maghrib')">Set</button>
+  </li>
+  <li>
+    Isya: <span id="isyaTime"></span>
+    <input type="number" id="isyaMinutes" min="-10" max="10" step="1">
+    Menit
+    <button onclick="setIqomahTime('isya')">Set</button>
+  </li>
+</ul>
+
+
+  <script>
+    // Fungsi untuk mengatur Iqomah Time
+function setIqomahTime(prayerName) {
+  var minutesInput = document.getElementById(prayerName + "Minutes");
+  var newMinutes = minutesInput.value;
+
+  if (newMinutes >= -10 && newMinutes <= 10) {
+    // Kirim permintaan HTTP POST ke perangkat ESP8266 dengan Iqomah Time yang baru
+    var xhr = new XMLHttpRequest();
+    xhr.open("POST", "/setiqomah", true);
+    xhr.setRequestHeader("Content-type", "application/x-www-form-urlencoded");
+    xhr.send("prayer=" + prayerName + "&minutes=" + newMinutes);
+
+    // Tampilkan pesan setelah berhasil mengirim
+    xhr.onload = function () {
+      if (xhr.status == 200) {
+        alert("Iqomah Time for " + prayerName + " set successfully!");
+        // Perbarui tampilan Iqomah Time setelah berhasil mengatur
+        document.getElementById(prayerName + "Time").textContent = newMinutes + " minutes";
+      } else {
+        alert("Failed to set Iqomah Time for " + prayerName + ".");
+      }
+    };
+  } else {
+    alert("Iqomah Time can only be set between -10 to 10 minutes.");
+  }
+}
+
+    // Mengambil informasi waktu dari perangkat client
+    function updateTime() {
+      var now = new Date();
+      var dayElement = document.getElementById("currentDay");
+      var timeElement = document.getElementById("currentTime");
+      var dateElement = document.getElementById("currentDate");
+
+      var days = ["Minggu", "Senin", "Selasa", "Rabu", "Kamis", "Jumat", "Sabtu"];
+      var day = days[now.getDay()];
+
+      var time = now.getHours().toString().padStart(2, '0') + ':' +
+                 now.getMinutes().toString().padStart(2, '0') + ':' +
+                 now.getSeconds().toString().padStart(2, '0');
+      var date = now.toDateString();
+
+      dayElement.textContent = day;
+      timeElement.textContent = time;
+      dateElement.textContent = date;
+    }
+
+    // Memanggil updateTime() setiap detik untuk memperbarui waktu
+    setInterval(updateTime, 1000);
+  </script>
+</body>
+</html>
+)=====";
